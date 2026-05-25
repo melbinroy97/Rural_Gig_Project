@@ -1,52 +1,21 @@
-const Review = require('../models/Review');
-const User = require('../models/User');
+const reviewService = require('../services/reviewService');
+const asyncHandler = require('../utils/asyncHandler');
 
-// @desc    Create new review
-// @route   POST /api/reviews
+// @desc    Create a new review
+// @route   POST /api/v1/reviews
 // @access  Private
-const createReview = async (req, res) => {
-  try {
-    const { reviewee, order, rating, comment } = req.body;
-
-    const review = new Review({
-      reviewer: req.user._id,
-      reviewee,
-      order,
-      rating,
-      comment
-    });
-
-    const createdReview = await review.save();
-
-    // Update user's rating and totalReviews
-    const reviews = await Review.find({ reviewee });
-    const totalReviews = reviews.length;
-    const avgRating = reviews.reduce((acc, item) => item.rating + acc, 0) / totalReviews;
-
-    await User.findByIdAndUpdate(reviewee, {
-      rating: avgRating,
-      totalReviews
-    });
-
-    res.status(201).json(createdReview);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+const createReview = asyncHandler(async (req, res) => {
+  const review = await reviewService.createReview(req.user._id, req.body);
+  res.status(201).json(review);
+});
 
 // @desc    Get reviews for a user
-// @route   GET /api/reviews/user/:id
+// @route   GET /api/v1/reviews/user/:id
 // @access  Public
-const getUserReviews = async (req, res) => {
-  try {
-    const reviews = await Review.find({ reviewee: req.params.id })
-      .populate('reviewer', 'name avatar location');
-    
-    res.json(reviews);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+const getUserReviews = asyncHandler(async (req, res) => {
+  const reviews = await reviewService.getReviewsForUser(req.params.id);
+  res.json(reviews);
+});
 
 module.exports = {
   createReview,

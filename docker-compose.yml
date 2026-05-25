@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: ruralconnect_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ruralconnect_network
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: ruralconnect_server
+    ports:
+      - "2000:2000"
+    environment:
+      - NODE_ENV=production
+      - PORT=2000
+      - MONGO_URI=mongodb://mongodb:27017/ruralconnect
+      - JWT_SECRET=supersecretkey123456
+      - CLIENT_URL=http://localhost:80
+    depends_on:
+      - mongodb
+    networks:
+      - ruralconnect_network
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: ruralconnect_client
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - ruralconnect_network
+
+volumes:
+  mongo_data:
+
+networks:
+  ruralconnect_network:
+    driver: bridge

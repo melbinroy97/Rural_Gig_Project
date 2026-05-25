@@ -1,84 +1,50 @@
-const User = require('../models/User');
+const userService = require('../services/userService');
+const asyncHandler = require('../utils/asyncHandler');
 
 // @desc    Get user profile by ID
-// @route   GET /api/users/profile/:id
+// @route   GET /api/v1/users/profile/:id
 // @access  Public
-const getUserProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select('-password');
-    if (user) {
-      res.json(user);
-    } else {
-      res.status(404).json({ message: 'User not found' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+const getUserProfile = asyncHandler(async (req, res) => {
+  const profile = await userService.getProfile(req.params.id);
+  res.json(profile);
+});
 
 // @desc    Update user profile
-// @route   PUT /api/users/profile/update
+// @route   PUT /api/v1/users/profile/update
 // @access  Private
-const updateUserProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-
-    if (user) {
-      user.name = req.body.name || user.name;
-      user.phone = req.body.phone || user.phone;
-      user.avatar = req.body.avatar || user.avatar;
-      user.coverPhoto = req.body.coverPhoto || user.coverPhoto;
-      user.bio = req.body.bio || user.bio;
-      
-      if (req.body.skills) {
-        user.skills = req.body.skills;
-      }
-      
-      if (req.body.village || req.body.district || req.body.state) {
-        user.location.village = req.body.village || user.location.village;
-        user.location.district = req.body.district || user.location.district;
-        user.location.state = req.body.state || user.location.state;
-      }
-
-      const updatedUser = await user.save();
-
-      res.json({
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        avatar: updatedUser.avatar,
-      });
-    } else {
-      res.status(404).json({ message: 'User not found' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+const updateUserProfile = asyncHandler(async (req, res) => {
+  const updatedUser = await userService.updateProfile(req.user._id, req.body);
+  res.json(updatedUser);
+});
 
 // @desc    Get all workers
-// @route   GET /api/users/workers
+// @route   GET /api/v1/users/workers
 // @access  Public
-const getWorkers = async (req, res) => {
-  try {
-    const filters = { role: 'worker' };
-    
-    // Add filters logic if query params provided
-    if (req.query.category) {
-        // We could search skills
-        filters.skills = { $in: [req.query.category] };
-    }
+const getWorkers = asyncHandler(async (req, res) => {
+  const workers = await userService.getWorkers(req.query);
+  res.json(workers);
+});
 
-    const workers = await User.find(filters).select('-password');
-    res.json(workers);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+// @desc    Get all users (Admin dashboard)
+// @route   GET /api/v1/users
+// @access  Private/Admin
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await userService.getAllUsers();
+  res.json(users);
+});
+
+// @desc    Suspend/verify user (Admin dashboard)
+// @route   PUT /api/v1/users/:id/suspend
+// @access  Private/Admin
+const suspendUser = asyncHandler(async (req, res) => {
+  const suspended = await userService.suspendUser(req.params.id);
+  res.json(suspended);
+});
 
 module.exports = {
   getUserProfile,
   updateUserProfile,
-  getWorkers
+  getWorkers,
+  getAllUsers,
+  suspendUser
 };
