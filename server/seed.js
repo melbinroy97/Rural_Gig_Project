@@ -158,6 +158,20 @@ const importData = async () => {
       }
     ];
 
+    const categoryImages = {
+      'Farming': 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+      'Carpentry': 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+      'Tailoring': 'https://images.unsplash.com/photo-1605647540924-852290f6b0d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+      'Plumbing': 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+      'Weaving': 'https://images.unsplash.com/photo-1544816155-12df9643f363?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+      'Pottery': 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+      'Welding': 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+      'Masonry': 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+      'Electricals': 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'
+    };
+
+    const fallbackImage = 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
+
     const gigs = [];
     for (let i = 0; i < 30; i++) {
       const worker = workers[i % workers.length];
@@ -170,7 +184,7 @@ const importData = async () => {
         category: baseGig.category,
         packages: baseGig.packages,
         tags: baseGig.tags,
-        images: [`https://images.unsplash.com/photo-1592982537447-6f2a6a0c5c1b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80`],
+        images: [categoryImages[baseGig.category] || fallbackImage],
         rating: Math.round((4.2 + (i % 9) * 0.1) * 10) / 10,
         totalOrders: 3 + (i % 12),
         isActive: true

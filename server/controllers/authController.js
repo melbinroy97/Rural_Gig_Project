@@ -83,10 +83,53 @@ const refreshToken = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Token refreshed successfully" });
 });
 
+// @desc    Resolve pincode details proxying external India Post API to avoid CORS/SSL browser issues
+// @route   GET /api/v1/auth/pincode/:pincode
+// @access  Public
+const resolvePincode = asyncHandler(async (req, res) => {
+  const { pincode } = req.params;
+  const https = require('https');
+
+  try {
+    const data = await new Promise((resolve, reject) => {
+      const options = {
+        hostname: 'api.postalpincode.in',
+        port: 443,
+        path: `/pincode/${pincode}`,
+        method: 'GET',
+        rejectUnauthorized: false // Bypasses government server expired SSL certificates completely
+      };
+
+      const reqGet = https.request(options, (apiRes) => {
+        let rawData = '';
+        apiRes.on('data', (chunk) => { rawData += chunk; });
+        apiRes.on('end', () => {
+          try {
+            resolve(JSON.parse(rawData));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      });
+
+      reqGet.on('error', (e) => {
+        reject(e);
+      });
+      reqGet.end();
+    });
+
+    res.json(data);
+  } catch (err) {
+    console.error('Pincode SSL-bypass proxy error:', err);
+    res.status(200).json([{ Status: 'Error', Message: 'System connection error' }]);
+  }
+});
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
   getMe,
-  refreshToken
+  refreshToken,
+  resolvePincode
 };
